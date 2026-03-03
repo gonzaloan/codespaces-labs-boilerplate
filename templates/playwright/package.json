@@ -1,0 +1,17 @@
+{
+  "name": "lab-playwright",
+  "version": "1.0.0",
+  "description": "Playwright Lab",
+  "scripts": {
+    "test": "npx  test --config=playwright.config.ts",
+    "test:report": "npx  show-report",
+    "grade": "npx  test --config=.grader/grader.config.ts"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^10.3.0",
+    "@playwright/test": "^1.58.2",
+    "@types/node": "^25.3.3",
+    "typescript": "^5.9.3"
+  },
+  "license": "ISC"
+}

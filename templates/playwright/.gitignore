@@ -1,0 +1,8 @@
+node_modules/
+dist/
+grader-results.json
+grader-results-raw.json
+grader-report/
+playwright-report/
+test-results/
+.env

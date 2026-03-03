@@ -1,0 +1,43 @@
+name: Grade Lab
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: temurin
+          cache: maven
+
+      - name: Run grader
+        run: mvn test -f .grader/pom.xml
+        continue-on-error: true
+
+      - name: Generate report
+        run: node .grader/summarize.js
+
+      - name: Post comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: grader
+          path: grader-report.md
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grader-results
+          path: grader-results.json
+          retention-days: 30

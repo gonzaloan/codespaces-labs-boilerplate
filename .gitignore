@@ -1,0 +1,30 @@
+# Node
+node_modules/
+dist/
+*.js.map
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+*.egg-info/
+
+# Environment
+.env
+
+# Test artifacts
+grader-results.json
+grader-results-raw.json
+grader-raw.json
+grader-report/
+playwright-report/
+test-results/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
