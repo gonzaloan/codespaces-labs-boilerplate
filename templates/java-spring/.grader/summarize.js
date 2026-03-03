@@ -29,7 +29,7 @@ for (const file of xmlFiles) {
     const suiteName = suiteMatch[1].replace(/.*\./, ''); // "grader.StructureTest.java" → "StructureTest.java"
 
     const checks = [];
-    const testcaseRegex = /<testcase[^>]+name="([^"]+)"[^>]*>([\s\S]*?)<\/testcase>|<testcase[^>]+name="([^"]+)"[^>]*\/>/g;
+    const testcaseRegex = /<testcase[^>]+\bname="([^"]+)"[^>]*>([\s\S]*?)<\/testcase>|<testcase[^>]+\bname="([^"]+)"[^>]*\/>/g;
     let match;
 
     while ((match = testcaseRegex.exec(content)) !== null) {
