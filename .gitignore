@@ -3,6 +3,8 @@ node_modules/
 dist/
 *.js.map
 
+next-steps.md
+
 # Python
 __pycache__/
 *.pyc
