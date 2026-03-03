@@ -1,6 +1,13 @@
 {
   "name": "Java Spring Lab",
   "image": "mcr.microsoft.com/devcontainers/java:21-jdk-bookworm",
+  "features": {
+    "ghcr.io/devcontainers/features/java:1": {
+      "version": "none",
+      "installMaven": "true",
+      "mavenVersion": "3.9"
+    }
+  },
   "postCreateCommand": "mvn dependency:resolve",
   "customizations": {
     "vscode": {
