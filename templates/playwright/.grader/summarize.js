@@ -10,112 +10,60 @@ const RAW_FILE = path.join(ROOT, 'grader-results-raw.json');
 const OUT_JSON = path.join(ROOT, 'grader-results.json');
 const OUT_MD   = path.join(ROOT, 'grader-report.md');
 
-// --- Read raw results ---
+// ---------------------------------------------------------------------------
+// Rubric — points per category.
+// These values MUST match the per-file point totals configured in GitHub
+// Classroom (one autograder test per file, e.g. structure.spec.ts → 6 pts).
+// Add or adjust categories to match the specific lab's test files.
+// ---------------------------------------------------------------------------
 
-let raw;
-try {
-    raw = JSON.parse(fs.readFileSync(RAW_FILE, 'utf-8'));
-} catch (e) {
-    console.error('Could not read grader-results-raw.json:', e.message);
-    process.exit(1);
-}
-
-// --- Parse Playwright JSON format: suites[file].suites[describe].specs[] ---
-
-const categories = [];
-
-for (const fileSuite of raw.suites ?? []) {
-    for (const describeSuite of fileSuite.suites ?? []) {
-        const checks = (describeSuite.specs ?? []).map(spec => ({
-            name:   spec.title,
-            passed: spec.ok,
-            hint:   spec.ok ? null : extractHint(spec),
-        }));
-        categories.push({
-            name:  describeSuite.title,
-            score: checks.filter(c => c.passed).length,
-            total: checks.length,
-            checks,
-        });
-    }
-}
-
-const totalScore    = categories.reduce((sum, c) => sum + c.score, 0);
-const totalChecks   = categories.reduce((sum, c) => sum + c.total, 0);
-const durationMs    = raw.stats?.duration ?? 0;
-const labName       = path.basename(ROOT);
-
-// --- Write grader-results.json ---
-
-const results = {
-    lab:        labName,
-    score:      totalScore,
-    total:      totalChecks,
-    duration:   durationMs,
-    categories,
+const CATEGORY_POINTS = {
+    'Structure': 6,
+    'Execution': 17,
+    'Quality':   6,
 };
 
-fs.writeFileSync(OUT_JSON, JSON.stringify(results, null, 2));
-console.log(`grader-results.json written (${totalScore}/${totalChecks})`);
+const TOTAL_POINTS = Object.values(CATEGORY_POINTS).reduce((a, b) => a + b, 0);
 
-// --- Write grader-report.md ---
-
-const pct          = totalChecks > 0 ? Math.round((totalScore / totalChecks) * 100) : 0;
-const hasStudentCode = detectStudentCode();
-
-let md = '## 🎓 Lab Grader Results\n\n';
-md += `> **Score: ${totalScore} / ${totalChecks} checks passed (${pct}%)** — ${statusMessage(pct)}\n`;
-md += `> ${progressBar(totalScore, totalChecks)}\n\n`;
-md += '---\n\n';
-
-if (!hasStudentCode) {
-    md += '### 🚀 Getting Started\n\n';
-    md += "*It looks like you haven't added any code yet — here's where to begin:*\n\n";
-    md += '1. Read `docs/instructions.md` for the full exercise description\n';
-    md += '2. Add your code inside the `src/` directory\n';
-    md += '3. Run `npm test` locally to verify before pushing\n\n';
-    md += '---\n\n';
-}
-
-for (const cat of categories) {
-    const summaryIcon = cat.score === cat.total ? '✅' : cat.score === 0 ? '❌' : '⚠️';
-
-    md += '<details>\n';
-    md += `<summary>${summaryIcon} ${cat.name} — ${cat.score}/${cat.total} passed</summary>\n\n`;
-    md += '| Check | | Hint |\n';
-    md += '|---|---|---|\n';
-
-    for (const check of cat.checks) {
-        const icon = check.passed ? '✅' : '❌';
-        md += `| ${check.name} | ${icon} | ${check.hint ?? ''} |\n`;
-    }
-
-    md += '\n</details>\n\n';
-}
-
-md += '---\n\n';
-md += '### 📚 Resources\n\n';
-md += '- [Playwright Locators](https://playwright.dev/docs/locators)\n';
-md += '- [Page Object Model](https://playwright.dev/docs/pom)\n';
-md += '- [Assertions reference](https://playwright.dev/docs/test-assertions)\n';
-md += '- Lab instructions: `docs/instructions.md`\n';
-
-fs.writeFileSync(OUT_MD, md);
-console.log('grader-report.md written');
-
-// --- Helpers ---
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
 
 function extractHint(spec) {
     const msg = spec.tests?.[0]?.results?.[0]?.error?.message ?? '';
     if (!msg) return null;
-    const clean = msg
-        .replace(/\x1b\[[0-9;]*m/g, '')   // strip ANSI color codes
-        .split('\n')
-        .map(l => l.trim())
-        .filter(l => l.length > 0)
-        .slice(0, 3)
-        .join(' · ');
-    return clean || null;
+
+    // Strip ANSI color codes
+    const clean = msg.replace(/\x1b\[[0-9;]*m/g, '');
+    const lines = clean.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+
+    // Playwright puts the custom expect message on the first line — prefer it
+    if (lines[0] && !lines[0].startsWith('expect(') && !lines[0].startsWith('Error:')) {
+        return lines[0].slice(0, 400);
+    }
+
+    // Fall back: first 3 lines joined
+    return lines.slice(0, 3).join(' · ').slice(0, 400) || null;
+}
+
+function progressBar(score, total) {
+    if (total === 0) return '`░░░░░░░░░░`';
+    const filled = Math.round((score / total) * 10);
+    return '`' + '█'.repeat(filled) + '░'.repeat(10 - filled) + '`';
+}
+
+function statusMessage(pct) {
+    if (pct === 100) return 'Perfect score! Excellent work!';
+    if (pct >= 80)   return 'Almost there — just a few more to fix!';
+    if (pct >= 50)   return 'Good progress, keep going!';
+    if (pct >= 20)   return "You've started! Keep building.";
+    return 'Time to write some code!';
+}
+
+function catIcon(cat) {
+    if (cat.score === cat.total) return '✅';
+    if (cat.score === 0)         return '❌';
+    return '⚠️';
 }
 
 function detectStudentCode() {
@@ -138,16 +86,138 @@ function hasFiles(dir, predicate) {
     return false;
 }
 
-function progressBar(passed, total) {
-    if (total === 0) return '`░░░░░░░░░░`';
-    const filled = Math.round((passed / total) * 10);
-    return '`' + '█'.repeat(filled) + '░'.repeat(10 - filled) + '`';
+// ---------------------------------------------------------------------------
+// Read raw results
+// ---------------------------------------------------------------------------
+
+let raw;
+try {
+    raw = JSON.parse(fs.readFileSync(RAW_FILE, 'utf-8'));
+} catch (e) {
+    console.error('Could not read grader-results-raw.json:', e.message);
+    process.exit(1);
 }
 
-function statusMessage(pct) {
-    if (pct === 100) return 'Perfect score! Excellent work!';
-    if (pct >= 80)   return 'Almost there — just a few more to fix!';
-    if (pct >= 50)   return 'Good progress, keep going!';
-    if (pct >= 20)   return "You've started! Keep building.";
-    return 'Time to write some code!';
+// ---------------------------------------------------------------------------
+// Parse Playwright JSON format: suites[file].suites[describe].specs[]
+// ---------------------------------------------------------------------------
+
+const categories = [];
+
+for (const fileSuite of raw.suites ?? []) {
+    for (const describeSuite of fileSuite.suites ?? []) {
+        const checks = (describeSuite.specs ?? []).map(spec => ({
+            name:   spec.title,
+            passed: spec.ok,
+            hint:   spec.ok ? null : extractHint(spec),
+        }));
+
+        const score    = checks.filter(c => c.passed).length;
+        const total    = checks.length;
+        const maxPts   = CATEGORY_POINTS[describeSuite.title] ?? 0;
+        const points   = total > 0 && maxPts > 0
+            ? Math.round((score / total) * maxPts * 10) / 10
+            : 0;
+
+        categories.push({
+            name:      describeSuite.title,
+            score,
+            total,
+            points,
+            maxPoints: maxPts,
+            checks,
+        });
+    }
 }
+
+const totalPtsEarned = Math.round(categories.reduce((sum, c) => sum + c.points, 0) * 10) / 10;
+const durationMs     = raw.stats?.duration ?? 0;
+const labName        = path.basename(ROOT);
+
+// ---------------------------------------------------------------------------
+// Write grader-results.json
+// ---------------------------------------------------------------------------
+
+const results = {
+    lab:        labName,
+    score:      totalPtsEarned,
+    total:      TOTAL_POINTS,
+    duration:   durationMs,
+    categories,
+};
+
+fs.writeFileSync(OUT_JSON, JSON.stringify(results, null, 2));
+console.log(`grader-results.json written (${totalPtsEarned}/${TOTAL_POINTS} pts)`);
+
+// ---------------------------------------------------------------------------
+// Write grader-report.md
+// ---------------------------------------------------------------------------
+
+const pct            = TOTAL_POINTS > 0 ? Math.round((totalPtsEarned / TOTAL_POINTS) * 100) : 0;
+const hasStudentCode = detectStudentCode();
+
+let md = '## Lab Grader Results\n\n';
+md += `> **Score: ${totalPtsEarned} / ${TOTAL_POINTS} pts (${pct}%)** — ${statusMessage(pct)}\n`;
+md += `> ${progressBar(totalPtsEarned, TOTAL_POINTS)}\n\n`;
+md += '---\n\n';
+
+// Summary table
+md += '### Score Breakdown\n\n';
+md += '| | Category | Points | Checks |\n';
+md += '|---|---|---|---|\n';
+for (const cat of categories) {
+    const icon      = catIcon(cat);
+    const checksStr = cat.score < cat.total ? `${cat.score}/${cat.total}` : 'all passing';
+    md += `| ${icon} | **${cat.name}** | ${cat.points} / ${cat.maxPoints} | ${checksStr} |\n`;
+}
+md += '\n---\n\n';
+
+if (!hasStudentCode) {
+    md += '### Getting Started\n\n';
+    md += "*It looks like you haven't added any code yet — here's where to begin:*\n\n";
+    md += '1. Read `docs/instructions.md` for the full exercise description\n';
+    md += '2. Add your code inside the `src/` directory\n';
+    md += '3. Run `npm test` locally to verify before pushing\n\n';
+    md += '---\n\n';
+}
+
+// Per-category detail sections
+md += '### Details\n\n';
+
+for (const cat of categories) {
+    const icon      = catIcon(cat);
+    const ptsLabel  = `${cat.points} / ${cat.maxPoints} pts`;
+    const chkLabel  = `${cat.score}/${cat.total} checks`;
+    const failing   = cat.checks.filter(c => !c.passed);
+
+    md += '<details>\n';
+    md += `<summary>${icon} <b>${cat.name}</b> — ${ptsLabel} — ${chkLabel}</summary>\n\n`;
+
+    md += '| Check | Status | Hint |\n';
+    md += '|---|---|---|\n';
+    for (const check of cat.checks) {
+        const status = check.passed ? '✅ Pass' : '❌ Fail';
+        const hint   = check.hint ?? '';
+        md += `| ${check.name} | ${status} | ${hint} |\n`;
+    }
+
+    if (failing.length > 0) {
+        md += '\n**What to fix:**\n';
+        for (const check of failing) {
+            const hintText = check.hint ? ` — ${check.hint}` : '';
+            md += `- \`${check.name}\`${hintText}\n`;
+        }
+    }
+
+    md += '\n</details>\n\n';
+}
+
+md += '---\n\n';
+md += '### Resources\n\n';
+md += '- [Playwright Locators](https://playwright.dev/docs/locators)\n';
+md += '- [Page Object Model](https://playwright.dev/docs/pom)\n';
+md += '- [Assertions reference](https://playwright.dev/docs/test-assertions)\n';
+md += '- Lab instructions: `docs/instructions.md`\n';
+
+fs.writeFileSync(OUT_MD, md);
+console.log('grader-report.md written');
