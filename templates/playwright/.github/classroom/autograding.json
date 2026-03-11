@@ -1,0 +1,25 @@
+{
+  "tests": [
+    {
+      "name": "Structure",
+      "setup": "npm ci && npx playwright install --with-deps chromium",
+      "run": "npx playwright test .grader/checks/structure.spec.ts",
+      "timeout": 10,
+      "points": 6
+    },
+    {
+      "name": "Execution",
+      "setup": "npm ci && npx playwright install --with-deps chromium",
+      "run": "npx playwright test .grader/checks/execution.spec.ts",
+      "timeout": 10,
+      "points": 17
+    },
+    {
+      "name": "Quality",
+      "setup": "npm ci && npx playwright install --with-deps chromium",
+      "run": "npx playwright test .grader/checks/quality.spec.ts",
+      "timeout": 10,
+      "points": 6
+    }
+  ]
+}
