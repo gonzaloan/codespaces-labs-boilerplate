@@ -1,8 +1,6 @@
 name: Autograding Tests
 
-on:
-  push
-  workflow_dispatch
+on: [push, workflow_dispatch]
 
 jobs:
   run-autograding-tests:
@@ -60,10 +58,12 @@ jobs:
           max-score: 4
 
       - name: Autograding Reporter
-        uses: classroom-resources/autograding-reporter@v1
+        uses: classroom-resources/autograding-grading-reporter@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          AUTOGRADING_RESULTS_STRUCTURE: ${{ steps.structure.outputs.result }}
-          AUTOGRADING_RESULTS_EXECUTION: ${{ steps.execution.outputs.result }}
-          AUTOGRADING_RESULTS_QUALITY: ${{ steps.quality.outputs.result }}
-          AUTOGRADING_RESULTS_STUDENTWORK: ${{ steps.studentwork.outputs.result }}
+          STRUCTURE_RESULTS: ${{ steps.structure.outputs.result }}
+          EXECUTION_RESULTS: ${{ steps.execution.outputs.result }}
+          QUALITY_RESULTS: ${{ steps.quality.outputs.result }}
+          STUDENTWORK_RESULTS: ${{ steps.studentwork.outputs.result }}
+        with:
+          runners: structure,execution,quality,studentwork

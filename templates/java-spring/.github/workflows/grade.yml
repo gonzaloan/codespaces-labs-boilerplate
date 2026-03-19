@@ -5,6 +5,7 @@ on:
     branches: [main]
 
 permissions:
+  contents: read
   pull-requests: write
 
 jobs:
@@ -42,10 +43,50 @@ jobs:
         run: node .grader/summarize.js
 
       - name: Post comment
-        uses: marocchino/sticky-pull-request-comment@v2
-        with:
-          header: grader
-          path: grader-report.md
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPO: ${{ github.repository }}
+        run: |
+          python3 - <<'EOF'
+          import os, json, urllib.request
+
+          token      = os.environ["GH_TOKEN"]
+          repo       = os.environ["REPO"]
+          pr_number  = os.environ["PR_NUMBER"]
+          marker     = "<!-- grader-comment -->"
+
+          with open("grader-report.md", encoding="utf-8") as f:
+              body = marker + "\n" + f.read()
+
+          headers = {
+              "Authorization": f"token {token}",
+              "Content-Type": "application/json",
+              "Accept": "application/vnd.github+json",
+          }
+
+          url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+          req = urllib.request.Request(url, headers=headers)
+          with urllib.request.urlopen(req) as resp:
+              comments = json.loads(resp.read())
+
+          comment_id = next(
+              (c["id"] for c in comments if marker in c.get("body", "")), None
+          )
+
+          data = json.dumps({"body": body}).encode()
+
+          if comment_id:
+              url = f"https://api.github.com/repos/{repo}/issues/comments/{comment_id}"
+              req = urllib.request.Request(url, data=data, headers=headers, method="PATCH")
+          else:
+              url = f"https://api.github.com/repos/{repo}/issues/{pr_number}/comments"
+              req = urllib.request.Request(url, data=data, headers=headers, method="POST")
+
+          with urllib.request.urlopen(req) as resp:
+              result = json.loads(resp.read())
+              print(f"Comment {'updated' if comment_id else 'created'}: {result['html_url']}")
+          EOF
 
       - name: Upload artifacts
         if: always()
