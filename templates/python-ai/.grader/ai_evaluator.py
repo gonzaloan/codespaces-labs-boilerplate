@@ -119,3 +119,84 @@ def clamp_scores(criteria_result: list, criteria_spec: list) -> list:
         c["score"] = round(min(float(c["score"]), float(max_val)), 1)
         c["max"] = max_val
     return criteria_result
+
+
+# ---------------------------------------------------------------------------
+# Portkey API call
+# ---------------------------------------------------------------------------
+
+def call_portkey(prompt: str, api_key: str) -> dict:
+    """Call Claude Haiku via Portkey. Returns parsed JSON dict."""
+    from portkey_ai import Portkey  # noqa: PLC0415  imported here to allow mocking
+
+    client = Portkey(api_key=api_key)
+    response = client.chat.completions.create(
+        model="claude-3-haiku-20240307",
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return json.loads(response.choices[0].message.content)
+
+
+# ---------------------------------------------------------------------------
+# Error output helper
+# ---------------------------------------------------------------------------
+
+def _write_error(reason: str) -> None:
+    Path("ai-feedback.json").write_text(
+        json.dumps({"evaluated": False, "reason": reason}, indent=2), encoding="utf-8"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Entry point
+# ---------------------------------------------------------------------------
+
+def main() -> None:
+    api_key = os.environ.get("PORTKEY_API_KEY")
+    if not api_key:
+        _write_error("AI Review: not configured — set PORTKEY_API_KEY to enable.")
+        print("PORTKEY_API_KEY not set — skipping AI evaluation")
+        return
+
+    spec_path = Path(".grader") / "SPEC.md"
+    spec = parse_spec(spec_path)
+
+    artifact_path = Path(spec["artifact"])
+    if not artifact_path.exists():
+        _write_error(f"AI Review: artifact not found at `{spec['artifact']}`.")
+        print(f"Artifact not found: {spec['artifact']}")
+        return
+
+    artifact_content = read_artifact(artifact_path, spec["artifact_type"])
+    prompt = build_prompt(artifact_content, spec["artifact_type"], spec["criteria"])
+
+    raw_result = None
+    for attempt in range(2):
+        try:
+            raw_result = call_portkey(prompt, api_key)
+            break
+        except json.JSONDecodeError:
+            if attempt == 1:
+                _write_error("AI Review: evaluation failed (invalid response). Score not affected.")
+                return
+        except Exception:
+            _write_error("AI Review: evaluation failed (API error). Score not affected.")
+            return
+
+    criteria_result = clamp_scores(raw_result["criteria"], spec["criteria"])
+    total_score = round(sum(c["score"] for c in criteria_result), 1)
+
+    output = {
+        "evaluated": True,
+        "artifact": spec["artifact"],
+        "total_score": total_score,
+        "max_score": spec["max_score"],
+        "criteria": criteria_result,
+        "summary": raw_result.get("summary", ""),
+    }
+    Path("ai-feedback.json").write_text(json.dumps(output, indent=2), encoding="utf-8")
+    print(f"ai-feedback.json written ({total_score}/{spec['max_score']})")
+
+
+if __name__ == "__main__":
+    main()
