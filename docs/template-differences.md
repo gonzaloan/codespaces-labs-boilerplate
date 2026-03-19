@@ -5,6 +5,7 @@
 - `grade.yml` pattern: checkout → setup → grade → generate report → post comment → upload artifact
 - PR comment format: progress bar, collapsible sections per category, hints on failure
 - `grader-results.json` standard format
+- AI review pipeline: `ai_evaluator.py` reads `.grader/SPEC.md` + student artifact → Portkey → `ai-feedback.json`
 - `scripts/new-lab.sh` to generate new labs
 - `docs/instructions.md` as a blank template for the professor
 
@@ -21,6 +22,7 @@
 | Category = | `test.describe()` block |
 | Check = | `test()` inside a describe |
 | Hint = | assertion message |
+| AI evaluator | `.grader/ai_evaluator.py` + `.grader/SPEC.md` |
 
 ## java-spring
 
@@ -35,6 +37,7 @@
 | Category = | Class name without `Test` suffix |
 | Check = | `@Test` method |
 | Hint = | assertion message |
+| AI evaluator | `.grader/ai_evaluator.py` + `.grader/SPEC.md` |
 
 ## python-ai
 
@@ -61,3 +64,20 @@ Also update `actions/setup-python` in `grade.yml` to match.
 **pytest class discovery:** The template's `pytest.ini` lists category class names in `python_classes`.
 If you add a new category (e.g. `class Security:`), add it to `python_classes` AND to `CATEGORY_POINTS`
 in `.grader/summarize.py`.
+
+## python-copilot
+
+| | |
+|---|---|
+| Language | Python 3.11 |
+| Runner | pytest + pytest-json-report |
+| Grade command | `pytest .grader/checks/ --json-report --json-report-file=grader-results-raw.json` |
+| Checks location | `.grader/checks/test_*.py` |
+| Report input | `grader-results-raw.json` + `ai-feedback.json` |
+| Report script | `.grader/summarize.py` |
+| Category = | Class name inside check file (e.g. `class Structure:`) |
+| Check = | Method name (e.g. `def test_file_exists`) |
+| Hint = | Assertion message |
+| AI evaluator | `.grader/ai_evaluator.py` + `.grader/SPEC.md` |
+| PR trigger | `feedback` branch (not `main`) |
+| Python version | 3.11 default. Override in `devcontainer.json` if needed. |
