@@ -1,0 +1,32 @@
+{
+  "tests": [
+    {
+      "name": "Structure",
+      "setup": "pip install -r requirements.txt",
+      "run": "pytest .grader/checks/test_structure.py",
+      "timeout": 10,
+      "points": 6
+    },
+    {
+      "name": "Execution",
+      "setup": "pip install -r requirements.txt",
+      "run": "pytest .grader/checks/test_execution.py",
+      "timeout": 10,
+      "points": 15
+    },
+    {
+      "name": "Quality",
+      "setup": "pip install -r requirements.txt",
+      "run": "pytest .grader/checks/test_quality.py",
+      "timeout": 10,
+      "points": 4
+    },
+    {
+      "name": "StudentWork",
+      "setup": "pip install -r requirements.txt",
+      "run": "pytest .grader/checks/test_student_work.py",
+      "timeout": 10,
+      "points": 4
+    }
+  ]
+}
