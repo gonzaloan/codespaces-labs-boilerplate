@@ -64,3 +64,69 @@ def test_progress_bar_empty():
 def test_progress_bar_half():
     bar = progress_bar(5, 10)
     assert "█████░░░░░" in bar
+
+
+SAMPLE_AI_FEEDBACK = {
+    "evaluated": True,
+    "artifact": "notebook/walkthrough.ipynb",
+    "total_score": 14.5,
+    "max_score": 20,
+    "criteria": [
+        {
+            "name": "MCP Explanation",
+            "score": 4.0,
+            "max": 5,
+            "strength": "Explains server-client well.",
+            "gap": "Missing subprocess detail.",
+            "action": "Add a sentence about stdin/stdout pipes.",
+        },
+        {
+            "name": "ASCII Diagram",
+            "score": 3.0,
+            "max": 5,
+            "strength": "Has 3 nodes.",
+            "gap": "Arrows not labeled.",
+            "action": "Add --[tool_call]--> labels.",
+        },
+    ],
+    "summary": "Good architectural understanding.",
+}
+
+SAMPLE_AI_NOT_CONFIGURED = {
+    "evaluated": False,
+    "reason": "AI Review: not configured — set PORTKEY_API_KEY to enable.",
+}
+
+
+def test_render_ai_section_shows_score():
+    md = render_ai_section(SAMPLE_AI_FEEDBACK)
+    assert "14.5 / 20" in md
+
+
+def test_render_ai_section_first_criterion_open():
+    md = render_ai_section(SAMPLE_AI_FEEDBACK)
+    assert "<details open>" in md
+
+
+def test_render_ai_section_second_criterion_collapsed():
+    md = render_ai_section(SAMPLE_AI_FEEDBACK)
+    assert "<details>" in md
+
+
+def test_render_ai_section_has_strength_gap_action():
+    md = render_ai_section(SAMPLE_AI_FEEDBACK)
+    assert "Strength" in md
+    assert "Gap" in md
+    assert "Action" in md
+    assert "Explains server-client well." in md
+
+
+def test_render_ai_section_has_summary():
+    md = render_ai_section(SAMPLE_AI_FEEDBACK)
+    assert "Good architectural understanding." in md
+
+
+def test_render_ai_section_not_configured():
+    md = render_ai_section(SAMPLE_AI_NOT_CONFIGURED)
+    assert "PORTKEY_API_KEY" in md
+    assert "<details" not in md
