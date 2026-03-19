@@ -120,6 +120,33 @@ console.log('grader-report.md written');
 
 // --- Helpers ---
 
+function renderAiSection(ai) {
+    if (!ai.evaluated) {
+        const reason = ai.reason || 'AI Review: not configured.';
+        return `\n---\n\n> ${reason}\n\n`;
+    }
+    const artifactLabel = path.basename(ai.artifact || 'artifact');
+    const total = ai.total_score ?? 0;
+    const maxS = ai.max_score ?? 0;
+    let md = `\n---\n\n### AI Review — ${artifactLabel}   ${total} / ${maxS}\n\n`;
+    md += '> *Coaching feedback — not included in your automated score.*\n\n';
+    const summary = ai.summary || '';
+    if (summary) {
+        md += `> **Overall:** ${summary}\n\n`;
+    }
+    const criteria = ai.criteria || [];
+    criteria.forEach((criterion, i) => {
+        const openAttr = i === 0 ? ' open' : '';
+        md += `<details${openAttr}>\n`;
+        md += `<summary><b>${criterion.name}</b> — ${criterion.score} / ${criterion.max}</summary>\n\n`;
+        md += `**Strength:** ${criterion.strength || ''}\n\n`;
+        md += `**Gap:** ${criterion.gap || ''}\n\n`;
+        md += `**Action:** ${criterion.action || ''}\n\n`;
+        md += '</details>\n\n';
+    });
+    return md;
+}
+
 function extractHint(body) {
     const msg = body.match(/<failure[^>]*message="([^"]*)"/) ??
         body.match(/<error[^>]*message="([^"]*)"/) ??
@@ -161,33 +188,6 @@ function hasFiles(dir, predicate) {
         }
     }
     return false;
-}
-
-function renderAiSection(ai) {
-    if (!ai.evaluated) {
-        const reason = ai.reason || 'AI Review: not configured.';
-        return `\n---\n\n> ${reason}\n\n`;
-    }
-    const artifactLabel = path.basename(ai.artifact || 'artifact');
-    const total = ai.total_score ?? 0;
-    const maxS = ai.max_score ?? 0;
-    let md = `\n---\n\n### AI Review — ${artifactLabel}   ${total} / ${maxS}\n\n`;
-    md += '> *Coaching feedback — not included in your automated score.*\n\n';
-    const summary = ai.summary || '';
-    if (summary) {
-        md += `> **Overall:** ${summary}\n\n`;
-    }
-    const criteria = ai.criteria || [];
-    criteria.forEach((criterion, i) => {
-        const openAttr = i === 0 ? ' open' : '';
-        md += `<details${openAttr}>\n`;
-        md += `<summary><b>${criterion.name}</b> — ${criterion.score} / ${criterion.max}</summary>\n\n`;
-        md += `**Strength:** ${criterion.strength || ''}\n\n`;
-        md += `**Gap:** ${criterion.gap || ''}\n\n`;
-        md += `**Action:** ${criterion.action || ''}\n\n`;
-        md += '</details>\n\n';
-    });
-    return md;
 }
 
 function progressBar(passed, total) {

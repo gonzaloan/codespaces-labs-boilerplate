@@ -4,9 +4,8 @@ Calls Claude Haiku via Portkey.
 Writes ai-feedback.json with structured coaching feedback.
 """
 import json
-import os  # used in main() — Task 4
+import os
 import re
-import sys  # used in main() — Task 4
 from pathlib import Path
 
 import frontmatter

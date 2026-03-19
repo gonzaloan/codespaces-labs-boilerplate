@@ -54,4 +54,5 @@ jobs:
           path: |
             grader-results.json
             ai-feedback.json
+          if-no-files-found: warn
           retention-days: 30
