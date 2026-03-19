@@ -7,11 +7,6 @@ Writes grader-report.md (PR comment)
 import json
 from pathlib import Path
 
-ROOT = Path.cwd()
-RAW_FILE = ROOT / "grader-results-raw.json"
-AI_FILE = ROOT / "ai-feedback.json"
-OUT_JSON = ROOT / "grader-results.json"
-OUT_MD = ROOT / "grader-report.md"
 
 # ---------------------------------------------------------------------------
 # Rubric — points per category.
@@ -35,7 +30,8 @@ def parse_pytest_results(raw: dict) -> list:
     """Parse pytest-json-report output into category dicts."""
     categories: dict = {}
     for test in raw.get("tests", []):
-        parts = test["nodeid"].split("::")
+        nodeid = test.get("nodeid", "")
+        parts = nodeid.split("::")
         if len(parts) < 3:
             continue
         class_name = parts[-2]
@@ -47,8 +43,10 @@ def parse_pytest_results(raw: dict) -> list:
         hint = None
         if not passed:
             longrepr = test.get("call", {}).get("longrepr", "")
+            # longrepr can be a dict for structured pytest failures; only use string form
             if isinstance(longrepr, str) and longrepr:
-                hint = longrepr.split("\n")[0][:400] or None
+                first_line = next((l for l in longrepr.splitlines() if l.strip()), "")
+                hint = first_line[:400] or None
 
         categories.setdefault(class_name, []).append(
             {"name": check_name, "passed": passed, "hint": hint}
@@ -130,7 +128,7 @@ def render_ai_section(ai: dict) -> str:
     return md
 
 
-def build_report(categories: list, ai: dict, lab_name: str) -> tuple:
+def build_report(categories: list, ai: dict, lab_name: str, duration: float = 0) -> tuple:
     """Return (grader-report.md content, grader-results dict)."""
     earned = round(sum(c["points"] for c in categories), 1)
     pct = round(earned / TOTAL_POINTS * 100) if TOTAL_POINTS > 0 else 0
@@ -173,24 +171,31 @@ def build_report(categories: list, ai: dict, lab_name: str) -> tuple:
         "lab": lab_name,
         "score": earned,
         "total": TOTAL_POINTS,
-        "duration": 0,
+        "duration": duration,
         "categories": categories,
     }
     return md, results
 
 
 def main():
-    raw = json.loads(RAW_FILE.read_text())
+    root = Path.cwd()
+    raw_file = root / "grader-results-raw.json"
+    ai_file = root / "ai-feedback.json"
+    out_json = root / "grader-results.json"
+    out_md = root / "grader-report.md"
+
+    raw = json.loads(raw_file.read_text())
     ai = (
-        json.loads(AI_FILE.read_text())
-        if AI_FILE.exists()
+        json.loads(ai_file.read_text())
+        if ai_file.exists()
         else {"evaluated": False, "reason": "AI Review: not configured — set PORTKEY_API_KEY to enable."}
     )
     categories = parse_pytest_results(raw)
-    lab_name = ROOT.name
-    md, results = build_report(categories, ai, lab_name)
-    OUT_JSON.write_text(json.dumps(results, indent=2))
-    OUT_MD.write_text(md)
+    lab_name = root.name
+    duration = raw.get("duration", 0)
+    md, results = build_report(categories, ai, lab_name, duration)
+    out_json.write_text(json.dumps(results, indent=2))
+    out_md.write_text(md)
     print(f"grader-results.json written ({results['score']}/{results['total']} pts)")
     print("grader-report.md written")
 
