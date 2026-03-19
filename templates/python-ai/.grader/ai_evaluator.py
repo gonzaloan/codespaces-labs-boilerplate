@@ -179,7 +179,8 @@ def main() -> None:
             if attempt == 1:
                 _write_error("AI Review: evaluation failed (invalid response). Score not affected.")
                 return
-        except Exception:
+        except Exception as exc:
+            print(f"Portkey API error: {type(exc).__name__}: {exc}")
             _write_error("AI Review: evaluation failed (API error). Score not affected.")
             return
 
