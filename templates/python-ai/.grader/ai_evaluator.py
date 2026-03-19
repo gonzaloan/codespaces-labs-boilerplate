@@ -183,6 +183,9 @@ def main() -> None:
             _write_error("AI Review: evaluation failed (API error). Score not affected.")
             return
 
+    if "criteria" not in raw_result:
+        _write_error("AI Review: evaluation failed (invalid response). Score not affected.")
+        return
     criteria_result = clamp_scores(raw_result["criteria"], spec["criteria"])
     total_score = round(sum(c["score"] for c in criteria_result), 1)
 
