@@ -1,0 +1,57 @@
+name: Grade Lab
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run grader
+        run: |
+          pytest .grader/checks/ \
+            --json-report \
+            --json-report-file=grader-results-raw.json \
+            -v
+        continue-on-error: true
+
+      - name: Run AI evaluator
+        run: python .grader/ai_evaluator.py
+        env:
+          PORTKEY_API_KEY: ${{ secrets.PORTKEY_API_KEY }}
+        continue-on-error: true
+
+      - name: Generate report
+        run: python .grader/summarize.py
+
+      - name: Post comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: grader
+          path: grader-report.md
+
+      - name: Upload artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: grader-results
+          path: |
+            grader-results.json
+            ai-feedback.json
+          retention-days: 30
