@@ -86,6 +86,33 @@ function hasFiles(dir, predicate) {
     return false;
 }
 
+function renderAiSection(ai) {
+    if (!ai.evaluated) {
+        const reason = ai.reason || 'AI Review: not configured.';
+        return `\n---\n\n> ${reason}\n\n`;
+    }
+    const artifactLabel = path.basename(ai.artifact || 'artifact');
+    const total = ai.total_score ?? 0;
+    const maxS = ai.max_score ?? 0;
+    let md = `\n---\n\n### AI Review — ${artifactLabel}   ${total} / ${maxS}\n\n`;
+    md += '> *Coaching feedback — not included in your automated score.*\n\n';
+    const summary = ai.summary || '';
+    if (summary) {
+        md += `> **Overall:** ${summary}\n\n`;
+    }
+    const criteria = ai.criteria || [];
+    criteria.forEach((criterion, i) => {
+        const openAttr = i === 0 ? ' open' : '';
+        md += `<details${openAttr}>\n`;
+        md += `<summary><b>${criterion.name}</b> — ${criterion.score} / ${criterion.max}</summary>\n\n`;
+        md += `**Strength:** ${criterion.strength || ''}\n\n`;
+        md += `**Gap:** ${criterion.gap || ''}\n\n`;
+        md += `**Action:** ${criterion.action || ''}\n\n`;
+        md += '</details>\n\n';
+    });
+    return md;
+}
+
 // ---------------------------------------------------------------------------
 // Read raw results
 // ---------------------------------------------------------------------------
@@ -218,6 +245,13 @@ md += '- [Playwright Locators](https://playwright.dev/docs/locators)\n';
 md += '- [Page Object Model](https://playwright.dev/docs/pom)\n';
 md += '- [Assertions reference](https://playwright.dev/docs/test-assertions)\n';
 md += '- Lab instructions: `docs/instructions.md`\n';
+
+const aiFile = path.join(ROOT, 'ai-feedback.json');
+let ai = { evaluated: false, reason: 'AI Review: not configured — set PORTKEY_API_KEY to enable.' };
+if (fs.existsSync(aiFile)) {
+    try { ai = JSON.parse(fs.readFileSync(aiFile, 'utf-8')); } catch (_) {}
+}
+md += renderAiSection(ai);
 
 fs.writeFileSync(OUT_MD, md);
 console.log('grader-report.md written');

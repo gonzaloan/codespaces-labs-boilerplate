@@ -27,6 +27,19 @@ jobs:
         run: npm run grade
         continue-on-error: true
 
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install AI evaluator dependencies
+        run: pip install -r .grader/requirements-ai.txt
+
+      - name: Run AI evaluator
+        run: python .grader/ai_evaluator.py
+        env:
+          PORTKEY_API_KEY: ${{ secrets.PORTKEY_API_KEY }}
+        continue-on-error: true
+
       - name: Generate report
         run: node .grader/summarize.js
 
@@ -41,5 +54,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: grader-results
-          path: grader-results.json
+          path: |
+            grader-results.json
+            ai-feedback.json
           retention-days: 30
