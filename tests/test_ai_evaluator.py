@@ -1,7 +1,5 @@
 import json
-import sys
 from pathlib import Path
-import pytest
 
 from ai_evaluator import parse_spec, read_artifact, build_prompt, clamp_scores
 
@@ -90,3 +88,17 @@ def test_clamp_scores_no_clamp_needed():
     criteria_spec = [{"name": "A", "max": 5}]
     result = clamp_scores(criteria_result, criteria_spec)
     assert result[0]["score"] == 3.5
+
+
+def test_build_prompt_contains_criterion_name():
+    criteria = [{"name": "MCP Explanation", "max": 5, "description": "Must mention server."}]
+    prompt = build_prompt("artifact text", "markdown", criteria)
+    assert "MCP Explanation" in prompt
+    assert "Must mention server." in prompt
+
+
+def test_build_prompt_contains_artifact_content():
+    criteria = [{"name": "A", "max": 5, "description": "desc"}]
+    prompt = build_prompt("my artifact content", "markdown", criteria)
+    assert "my artifact content" in prompt
+    assert "markdown" in prompt

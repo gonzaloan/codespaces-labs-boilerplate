@@ -4,9 +4,9 @@ Calls Claude Haiku via Portkey.
 Writes ai-feedback.json with structured coaching feedback.
 """
 import json
-import os
+import os  # used in main() — Task 4
 import re
-import sys
+import sys  # used in main() — Task 4
 from pathlib import Path
 
 import frontmatter
@@ -108,7 +108,11 @@ Return ONLY valid JSON matching this schema:
 # ---------------------------------------------------------------------------
 
 def clamp_scores(criteria_result: list, criteria_spec: list) -> list:
-    """Clamp model-returned scores to their criterion max. Round to 1 decimal."""
+    """Clamp model-returned scores to their criterion max. Round to 1 decimal.
+
+    Modifies criteria_result dicts in place and returns the same list.
+    Callers must not rely on the original values after this call.
+    """
     spec_map = {c["name"]: c["max"] for c in criteria_spec}
     for c in criteria_result:
         max_val = spec_map.get(c["name"], c.get("max", 10))
