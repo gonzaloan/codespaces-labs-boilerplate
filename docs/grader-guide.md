@@ -22,6 +22,47 @@ Checks are grouped into categories. Each category has a **point value** defined 
 | **Quality** | Code style, docstrings/JSDoc, type hints, naming conventions | ~20% |
 | **AI Usage** | Evidence of Copilot/AI tool usage in the code (lab-specific) | ~10% |
 
+## Writing AI-evaluable specs (SPEC.md)
+
+The AI evaluator reads `.grader/SPEC.md` to know what to evaluate and how.
+
+### Schema
+
+SPEC.md uses YAML frontmatter followed by Markdown rubric criteria:
+
+```markdown
+---
+artifact: notebook/walkthrough.ipynb   # path relative to repo root
+artifact_type: jupyter                 # jupyter | markdown | python
+max_score: 20                          # total points for this artifact
+---
+
+## Criterion Name (max: 5)
+Describe what a passing response must include. Be specific — the model
+uses this description to score and give feedback.
+```
+
+### artifact_type values
+
+| Type | When to use |
+|---|---|
+| `jupyter` | `.ipynb` notebooks — cell sources are extracted automatically |
+| `markdown` | `.md` files (ADRs, reflections, READMEs) |
+| `python` | `.py` files you want qualitatively reviewed |
+
+### Writing good criteria
+
+Each criterion body is passed directly to the model. Be explicit about minimum bars:
+
+**Too vague:** "Student understands MCP."
+
+**Good:** "Must mention: server, client, stdio, and at least one of: subprocess, pipe, transport."
+
+### Criterion total vs max_score
+
+The sum of all `(max: N)` values should equal `max_score`. The evaluator does not enforce this,
+but a mismatch will produce confusing scores in the PR comment.
+
 > The exact point values for each lab are defined in `CATEGORY_POINTS` in `summarize.js` / `summarize.py`.
 > These values **must match** the per-file point totals configured in GitHub Classroom.
 
@@ -113,3 +154,44 @@ class Execution:
 | Execution | Code runs and produces correct output |
 | Quality | Code style, docstrings, type hints, naming |
 | AI Usage | Evidence of AI tool usage (Copilot comments, etc.) |
+
+## Writing AI-evaluable specs (SPEC.md)
+
+The AI evaluator reads `.grader/SPEC.md` to know what to evaluate and how.
+
+### Schema
+
+SPEC.md uses YAML frontmatter followed by Markdown rubric criteria:
+
+```markdown
+---
+artifact: notebook/walkthrough.ipynb   # path relative to repo root
+artifact_type: jupyter                 # jupyter | markdown | python
+max_score: 20                          # total points for this artifact
+---
+
+## Criterion Name (max: 5)
+Describe what a passing response must include. Be specific — the model
+uses this description to score and give feedback.
+```
+
+### artifact_type values
+
+| Type | When to use |
+|---|---|
+| `jupyter` | `.ipynb` notebooks — cell sources are extracted automatically |
+| `markdown` | `.md` files (ADRs, reflections, READMEs) |
+| `python` | `.py` files you want qualitatively reviewed |
+
+### Writing good criteria
+
+Each criterion body is passed directly to the model. Be explicit about minimum bars:
+
+**Too vague:** "Student understands MCP."
+
+**Good:** "Must mention: server, client, stdio, and at least one of: subprocess, pipe, transport."
+
+### Criterion total vs max_score
+
+The sum of all `(max: N)` values should equal `max_score`. The evaluator does not enforce this,
+but a mismatch will produce confusing scores in the PR comment.
