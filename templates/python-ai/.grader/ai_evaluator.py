@@ -138,7 +138,16 @@ def call_portkey(prompt: str, api_key: str, model: str) -> dict:
         model=model,
         messages=[{"role": "user", "content": prompt}],
     )
-    return json.loads(response.choices[0].message.content)
+    raw = response.choices[0].message.content.strip()
+    # Strip markdown code fences if present (Claude sometimes wraps JSON in ```json...```)
+    if raw.startswith("```"):
+        raw = re.sub(r"^```(?:json)?\n?", "", raw)
+        raw = re.sub(r"\n?```$", "", raw)
+    # Extract first JSON object in case of leading/trailing prose
+    match = re.search(r"\{[\s\S]*\}", raw)
+    if match:
+        raw = match.group(0)
+    return json.loads(raw)
 
 
 # ---------------------------------------------------------------------------
