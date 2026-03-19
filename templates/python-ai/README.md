@@ -11,4 +11,8 @@ Brief description of the lab.
 
 ## Grading
 
-A grader runs automatically on every Pull Request and posts a score comment.
+A grader runs automatically on every Pull Request and posts a score comment with:
+- Automated test results broken down by category
+- AI coaching feedback on your submitted artifact (if configured by your instructor)
+
+The AI feedback is formative — it is coaching, not a final grade.

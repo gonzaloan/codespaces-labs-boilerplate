@@ -110,6 +110,10 @@ def render_ai_section(ai: dict) -> str:
     artifact_label = Path(artifact).name if artifact else "artifact"
 
     md = f"\n---\n\n### 🤖 AI Review — {artifact_label}   {total} / {max_s}\n\n"
+    md += "> *Coaching feedback — not included in your automated score.*\n\n"
+    summary = ai.get("summary", "")
+    if summary:
+        md += f"> 💬 **Overall:** {summary}\n\n"
     for i, criterion in enumerate(ai.get("criteria", [])):
         open_attr = " open" if i == 0 else ""
         md += f"<details{open_attr}>\n"
@@ -122,9 +126,6 @@ def render_ai_section(ai: dict) -> str:
         md += f"💡 **Action:** {criterion.get('action', '')}\n\n"
         md += "</details>\n\n"
 
-    summary = ai.get("summary", "")
-    if summary:
-        md += f"> 💬 **Overall:** {summary}\n\n"
     return md
 
 
@@ -184,7 +185,7 @@ def main():
     out_json = root / "grader-results.json"
     out_md = root / "grader-report.md"
 
-    raw = json.loads(raw_file.read_text())
+    raw = json.loads(raw_file.read_text()) if raw_file.exists() else {"tests": [], "duration": 0}
     ai = (
         json.loads(ai_file.read_text())
         if ai_file.exists()

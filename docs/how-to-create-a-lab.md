@@ -14,7 +14,7 @@ bash scripts/new-lab.sh
 ```
 
 Follow the prompts:
-- **Template:** `playwright` or `java-spring`
+- **Template:** `playwright`, `java-spring`, or `python-ai`
 - **Lab name:** e.g. `lab-02-api-testing`
 - **Output directory:** where the new repo will be created (default: `../`)
 

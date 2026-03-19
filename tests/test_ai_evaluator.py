@@ -150,3 +150,37 @@ def test_main_artifact_not_found_writes_error(tmp_path, monkeypatch):
     feedback = json.loads((tmp_path / "ai-feedback.json").read_text())
     assert feedback["evaluated"] is False
     assert "artifact not found" in feedback["reason"]
+
+
+def test_main_api_error_writes_error(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PORTKEY_API_KEY", "fake-key")
+    (tmp_path / ".grader").mkdir()
+    (tmp_path / "x.md").write_text("content")
+    (tmp_path / ".grader" / "SPEC.md").write_text(
+        "---\nartifact: x.md\nartifact_type: markdown\nmax_score: 10\n---\n## C (max: 10)\nDesc\n"
+    )
+    with patch("portkey_ai.Portkey") as MockPortkey:
+        MockPortkey.return_value.chat.completions.create.side_effect = RuntimeError("connection failed")
+        main()
+    feedback = json.loads((tmp_path / "ai-feedback.json").read_text())
+    assert feedback["evaluated"] is False
+    assert "API error" in feedback["reason"]
+
+
+def test_main_json_retry_fails_writes_error(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.setenv("PORTKEY_API_KEY", "fake-key")
+    (tmp_path / ".grader").mkdir()
+    (tmp_path / "x.md").write_text("content")
+    (tmp_path / ".grader" / "SPEC.md").write_text(
+        "---\nartifact: x.md\nartifact_type: markdown\nmax_score: 10\n---\n## C (max: 10)\nDesc\n"
+    )
+    mock_response = MagicMock()
+    mock_response.choices[0].message.content = "not valid json {{{"
+    with patch("portkey_ai.Portkey") as MockPortkey:
+        MockPortkey.return_value.chat.completions.create.return_value = mock_response
+        main()
+    feedback = json.loads((tmp_path / "ai-feedback.json").read_text())
+    assert feedback["evaluated"] is False
+    assert "invalid response" in feedback["reason"]

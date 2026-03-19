@@ -86,6 +86,7 @@ For each criterion:
 
 Score each criterion from 0 to its max (floats allowed, 1 decimal).
 Do not round up — partial credit only when the criterion is partially met.
+The "name" field in your JSON MUST exactly match the criterion names from the rubric above.
 
 Return ONLY valid JSON matching this schema:
 {{
