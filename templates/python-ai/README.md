@@ -15,4 +15,4 @@ A grader runs automatically on every Pull Request and posts a score comment with
 - Automated test results broken down by category
 - AI coaching feedback on your submitted artifact (if configured by your instructor)
 
-The AI feedback is formative — it is coaching, not a final grade.
+If your instructor has configured AI review, you will also receive coaching feedback on your submitted artifact — what you did well, what is missing, and one specific action to improve. This feedback is formative and does not affect your automated score.

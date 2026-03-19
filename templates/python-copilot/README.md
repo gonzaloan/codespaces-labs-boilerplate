@@ -56,6 +56,8 @@ You push to main
 
 You can push as many times as you want — the score updates each time.
 
+If your instructor has configured AI review, you will also receive coaching feedback on your submitted artifact — what you did well, what is missing, and one specific action to improve. This feedback is formative and does not affect your automated score.
+
 ---
 
 ## Rules
