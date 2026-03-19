@@ -22,7 +22,7 @@ jobs:
           cache: pip
 
       - name: Install dependencies
-        run: pip install -r requirements.txt -r requirements-dev.txt
+        run: pip install -r requirements.txt -r requirements-dev.txt -r .grader/requirements-ai.txt
 
       - name: Run grader
         run: pytest .grader/checks/ --json-report --json-report-file=grader-results-raw.json -v

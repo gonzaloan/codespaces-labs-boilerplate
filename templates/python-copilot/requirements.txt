@@ -3,5 +3,3 @@
 # Example:
 # requests==2.32.3
 # openai==1.30.0
-portkey-ai>=1,<2
-python-frontmatter>=1,<2
