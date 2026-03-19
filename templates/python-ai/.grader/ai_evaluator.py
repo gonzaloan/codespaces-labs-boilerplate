@@ -125,13 +125,17 @@ def clamp_scores(criteria_result: list, criteria_spec: list) -> list:
 # Portkey API call
 # ---------------------------------------------------------------------------
 
-def call_portkey(prompt: str, api_key: str) -> dict:
-    """Call Claude Haiku via Portkey. Returns parsed JSON dict."""
+PORTKEY_BASE_URL = "https://portkeygateway.perficient.com/v1"
+DEFAULT_MODEL = "@aws-bedrock-use2/us.anthropic.claude-sonnet-4-6"
+
+
+def call_portkey(prompt: str, api_key: str, model: str) -> dict:
+    """Call Claude via Perficient's Portkey gateway. Returns parsed JSON dict."""
     from portkey_ai import Portkey  # noqa: PLC0415  imported here to allow mocking
 
-    client = Portkey(api_key=api_key)
+    client = Portkey(api_key=api_key, base_url=PORTKEY_BASE_URL)
     response = client.chat.completions.create(
-        model="claude-3-haiku-20240307",
+        model=model,
         messages=[{"role": "user", "content": prompt}],
     )
     return json.loads(response.choices[0].message.content)
@@ -158,6 +162,8 @@ def main() -> None:
         print("PORTKEY_API_KEY not set — skipping AI evaluation")
         return
 
+    model = os.environ.get("PORTKEY_MODEL", DEFAULT_MODEL)
+
     spec_path = Path(".grader") / "SPEC.md"
     spec = parse_spec(spec_path)
 
@@ -173,7 +179,7 @@ def main() -> None:
     raw_result = None
     for attempt in range(2):
         try:
-            raw_result = call_portkey(prompt, api_key)
+            raw_result = call_portkey(prompt, api_key, model)
             break
         except json.JSONDecodeError:
             if attempt == 1:

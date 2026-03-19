@@ -36,6 +36,7 @@ jobs:
         run: python .grader/ai_evaluator.py
         env:
           PORTKEY_API_KEY: ${{ secrets.PORTKEY_API_KEY }}
+          PORTKEY_MODEL: ${{ vars.PORTKEY_MODEL }}
         continue-on-error: true
 
       - name: Generate report
