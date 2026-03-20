@@ -1,11 +1,12 @@
 name: Autograding Tests
-'on':
-- push
-- repository_dispatch
+
+on: [push]
+
 permissions:
   checks: write
   actions: read
   contents: read
+
 jobs:
   run-autograding-tests:
     runs-on: ubuntu-latest
