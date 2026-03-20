@@ -25,6 +25,7 @@ jobs:
       - name: Structure
         id: structure
         uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
         with:
           test-name: Structure
           setup-command: pip install -r requirements.txt
@@ -35,6 +36,7 @@ jobs:
       - name: Execution
         id: execution
         uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
         with:
           test-name: Execution
           setup-command: pip install -r requirements.txt
@@ -45,6 +47,7 @@ jobs:
       - name: Quality
         id: quality
         uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
         with:
           test-name: Quality
           setup-command: pip install -r requirements.txt
@@ -55,6 +58,7 @@ jobs:
       - name: StudentWork
         id: studentwork
         uses: classroom-resources/autograding-command-grader@v1
+        continue-on-error: true
         with:
           test-name: StudentWork
           setup-command: pip install -r requirements.txt
@@ -63,6 +67,7 @@ jobs:
           max-score: 4
 
       - name: Autograding Reporter
+        if: always()
         uses: classroom-resources/autograding-grading-reporter@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
