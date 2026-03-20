@@ -20,7 +20,20 @@ Follow the prompts:
 
 ### 2. Define the exercise
 
-Edit `docs/instructions.md` — describe what the student has to build, the requirements, and any useful resources.
+Edit `README.md` — fill in the `## The scenario` section and the `## Tasks` section.
+
+Each task should follow this format:
+
+```markdown
+### Task N — [Name] (~X min)
+
+[What the student does. 2–3 sentences.]
+
+**What to capture in REFLECTION.md:** [What they document, or "No entry required."]
+```
+
+The `## Grading` and `## Tips & Troubleshooting` sections also need to be filled in.
+`docs/instructions.md` does not exist in the templates — README is the single source of truth for student-facing content.
 
 ### 3. Write the grading criteria
 

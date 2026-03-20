@@ -27,19 +27,37 @@ Click the green **"Code"** button at the top of this page, select the **"Codespa
 
 > The environment will take about 60 seconds to set up. Everything is pre-installed — JDK 21, Maven, and GitHub Copilot.
 
-### 2 — Read the instructions
+### 2 — Verify your starting state
 
-Open `docs/instructions.md` in the Codespace for the full exercise guide with step-by-step tasks.
+```bash
+mvn test
+```
 
-### 3 — Work on your solution
+Everything will fail — that is intentional. Your goal is to reach 70% or higher.
 
-All your code goes in `src/main/java/`. See `docs/instructions.md` for details on each task.
+### 3 — Check your score after working
 
-### 4 — Check your score
-
-Push your changes to `main` — the grader runs automatically and posts your score as a comment on the **Feedback pull request** in this repo.
+Push your changes — the grader runs automatically and posts your score as a comment on the **Feedback pull request** in this repo.
 
 ![Score comment](docs/images/score-comment.png) <!-- TODO: add screenshot of the PR comment with score -->
+
+---
+
+## Tasks
+
+<!--
+TODO: Define each task using this format:
+
+### Task N — [Name] (~X min)
+
+[What the student does. 2–3 sentences describing the goal and approach.]
+
+**What to capture in REFLECTION.md:** [What they document, or "No REFLECTION entry required for this task."]
+
+---
+
+Repeat for each task.
+-->
 
 ---
 
@@ -78,7 +96,7 @@ Try refreshing the page and creating a new Codespace. If the issue persists, con
 Make sure you are signed in to GitHub in VS Code. Click the Copilot icon in the bottom status bar and follow the sign-in flow.
 
 **Maven build fails with "cannot find symbol"**
-Check that your class names and package declarations match what the grader expects. See `docs/instructions.md` for the required class structure.
+Check that your class names and package declarations match what the grader expects. See the Tasks section above for the required class structure.
 
 **Tests failing locally but passing in Actions (or vice versa)**
 Run `mvn dependency:resolve` in the terminal to ensure all dependencies are downloaded.

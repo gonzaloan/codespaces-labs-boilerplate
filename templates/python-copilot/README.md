@@ -27,19 +27,37 @@ Click the green **"Code"** button at the top of this page, select the **"Codespa
 
 > The environment will take about 60 seconds to set up. Everything is pre-installed — Python, pytest, and GitHub Copilot.
 
-### 2 — Read the instructions
+### 2 — Verify your starting state
 
-Open `docs/instructions.md` in the Codespace for the full exercise guide with step-by-step tasks.
+```bash
+pytest .grader/checks/ tests/ -v
+```
 
-### 3 — Work on your solution
+Everything will fail — that is intentional. Your goal is to reach 70% or higher.
 
-All your code goes in the `src/` folder. See `docs/instructions.md` for details on each task.
+### 3 — Check your score after working
 
-### 4 — Check your score
-
-Push your changes to `main` — the grader runs automatically and posts your score as a comment on the **Feedback pull request** in this repo.
+Push your changes — the grader runs automatically and posts your score as a comment on the **Feedback pull request** in this repo.
 
 ![Score comment](docs/images/score-comment.png) <!-- TODO: add screenshot of the PR comment with score -->
+
+---
+
+## Tasks
+
+<!--
+TODO: Define each task using this format:
+
+### Task N — [Name] (~X min)
+
+[What the student does. 2–3 sentences describing the goal and approach.]
+
+**What to capture in REFLECTION.md:** [What they document, or "No REFLECTION entry required for this task."]
+
+---
+
+Repeat for each task.
+-->
 
 ---
 
