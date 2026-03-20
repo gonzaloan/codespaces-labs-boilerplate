@@ -1,79 +1,60 @@
 name: Autograding Tests
-
-on: [push, workflow_dispatch]
-
+'on':
+- push
+- repository_dispatch
 permissions:
   checks: write
   actions: read
   contents: read
-
 jobs:
   run-autograding-tests:
     runs-on: ubuntu-latest
     if: github.actor != 'github-classroom[bot]'
-
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.12'
-          cache: pip
-
-      - name: Structure
-        id: structure
-        uses: classroom-resources/autograding-command-grader@v1
-        continue-on-error: true
-        with:
-          test-name: Structure
-          setup-command: pip install -r requirements.txt
-          command: pytest .grader/checks/test_structure.py
-          timeout: 10
-          max-score: 6
-
-      - name: Execution
-        id: execution
-        uses: classroom-resources/autograding-command-grader@v1
-        continue-on-error: true
-        with:
-          test-name: Execution
-          setup-command: pip install -r requirements.txt
-          command: pytest .grader/checks/test_execution.py
-          timeout: 10
-          max-score: 15
-
-      - name: Quality
-        id: quality
-        uses: classroom-resources/autograding-command-grader@v1
-        continue-on-error: true
-        with:
-          test-name: Quality
-          setup-command: pip install -r requirements.txt
-          command: pytest .grader/checks/test_quality.py
-          timeout: 10
-          max-score: 4
-
-      - name: StudentWork
-        id: studentwork
-        uses: classroom-resources/autograding-command-grader@v1
-        continue-on-error: true
-        with:
-          test-name: StudentWork
-          setup-command: pip install -r requirements.txt
-          command: pytest .grader/checks/test_student_work.py
-          timeout: 10
-          max-score: 4
-
-      - name: Autograding Reporter
-        if: always()
-        uses: classroom-resources/autograding-grading-reporter@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          STRUCTURE_RESULTS: ${{ steps.structure.outputs.result }}
-          EXECUTION_RESULTS: ${{ steps.execution.outputs.result }}
-          QUALITY_RESULTS: ${{ steps.quality.outputs.result }}
-          STUDENTWORK_RESULTS: ${{ steps.studentwork.outputs.result }}
-        with:
-          runners: structure,execution,quality,studentwork
+    - name: Checkout code
+      uses: actions/checkout@v4
+    - name: Structure
+      id: structure
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Structure
+        setup-command: pip install -r requirements.txt
+        command: pytest .grader/checks/test_structure.py -v
+        timeout: 10
+        max-score: 6
+    - name: Execution
+      id: execution
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Execution
+        setup-command: pip install -r requirements.txt
+        command: pytest .grader/checks/test_execution.py -v
+        timeout: 10
+        max-score: 15
+    - name: Quality
+      id: quality
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: Quality
+        setup-command: pip install -r requirements.txt
+        command: pytest .grader/checks/test_quality.py -v
+        timeout: 10
+        max-score: 4
+    - name: StudentWork
+      id: studentwork
+      uses: classroom-resources/autograding-command-grader@v1
+      with:
+        test-name: StudentWork
+        setup-command: pip install -r requirements.txt
+        command: pytest .grader/checks/test_student_work.py -v
+        timeout: 10
+        max-score: 4
+    - name: Autograding Reporter
+      uses: classroom-resources/autograding-grading-reporter@v1
+      env:
+        STRUCTURE_RESULTS: "${{steps.structure.outputs.result}}"
+        EXECUTION_RESULTS: "${{steps.execution.outputs.result}}"
+        QUALITY_RESULTS: "${{steps.quality.outputs.result}}"
+        STUDENTWORK_RESULTS: "${{steps.studentwork.outputs.result}}"
+      with:
+        runners: structure,execution,quality,studentwork
